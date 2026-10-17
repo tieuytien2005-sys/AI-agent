@@ -1,0 +1,30 @@
+# Environment secrets
+.env
+.env*.local
+
+# Ensure .env.example is NOT ignored
+!.env.example
+
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+*.egg-info/
+.pytest_cache/
+
+# Databases & Docker local data
+*.sqlite3
+pgdata/
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

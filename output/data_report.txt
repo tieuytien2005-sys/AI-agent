@@ -1,0 +1,12 @@
+Số ngày sử dụng: 1941 (d_1 đến d_1941)
+Số chuỗi thuộc cửa hàng ['CA_1', 'TX_1']: 6098
+  Loại vì lịch sử < 730 ngày: 421
+  Loại vì tỷ lệ 0 gần đây > 0.3: 4778
+  Loại vì có đoạn 0 >= 14 ngày: 681
+Số chuỗi đủ điều kiện: 218
+Số chuỗi được chọn cho PoC: 30
+Tỷ lệ dòng có giá bán: 0.764
+Đã bỏ 13805 dòng trước ngày mở bán
+Tổng số dòng đầu ra: 44425
+Số dòng theo tập: {'train': 42745, 'val': 840, 'test': 840}
+Số dòng đánh dấu hết hàng: 0

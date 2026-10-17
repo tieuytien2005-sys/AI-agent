@@ -1,0 +1,10 @@
+supplier_id,orders_received,on_time_rate,avg_actual_lead_time,defect_rate,supplier_name,lead_time_days
+SUP_FOOD_BAL,320,0.859,7.984,0.02,NCC cân bằng (FOODS),7
+SUP_FOOD_CHEAP,154,0.708,16.045,0.041,NCC giá rẻ (FOODS),14
+SUP_FOOD_FAST,345,0.942,3.406,0.008,NCC giao nhanh (FOODS),3
+SUP_HOBB_BAL,182,0.885,7.808,0.02,NCC cân bằng (HOBBIES),7
+SUP_HOBB_CHEAP,126,0.667,16.333,0.039,NCC giá rẻ (HOBBIES),14
+SUP_HOBB_FAST,225,0.964,3.249,0.003,NCC giao nhanh (HOBBIES),3
+SUP_HOUS_BAL,187,0.84,8.123,0.02,NCC cân bằng (HOUSEHOLD),7
+SUP_HOUS_CHEAP,121,0.694,16.14,0.039,NCC giá rẻ (HOUSEHOLD),14
+SUP_HOUS_FAST,248,0.907,3.649,0.008,NCC giao nhanh (HOUSEHOLD),3
