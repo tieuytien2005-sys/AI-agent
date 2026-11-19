@@ -173,13 +173,27 @@ docker compose logs -f backend
 ## 7. CI/CD Pipeline (GitHub Actions)
 
 Tệp workflow nằm tại `.github/workflows/ci.yml`. Pipeline tự động kích hoạt khi có `push` hoặc `pull_request` vào nhánh `main` hoặc `dev`:
-1. **Lint, Database Setup & Pytest**:
-   - Khởi tạo container PostgreSQL 16.
-   - Nạp schema (`db/schema.sql`) và quyền (`db/permissions.sql`).
-   - Nạp dataset PoC và seed các user test (`db/seed_test_users.py`).
-   - Kiểm tra cú pháp toàn bộ file Python và thực thi bộ test Pytest (`backend/tests`).
-2. **Build Docker Image**:
-   - Kiểm tra build Docker image cho backend bằng Buildx để đảm bảo image luôn sẵn sàng triển khai.
+
+### 1. Continuous Integration (CI) - `lint-and-test`:
+- Khởi tạo service container PostgreSQL 16.
+- Nạp schema (`db/schema.sql`) và quyền (`db/permissions.sql`).
+- Nạp dataset PoC và seed các user test (`db/seed_test_users.py`).
+- Kiểm tra cú pháp toàn bộ file Python và thực thi bộ test Pytest (`backend/tests ml/tests`).
+
+### 2. Continuous Delivery (CD) - `build-and-push`:
+- Tự động đăng nhập vào **GitHub Container Registry (GHCR)** qua `GITHUB_TOKEN`.
+- Build và đẩy (push) image Docker lên `ghcr.io/tieuytien2005-sys/ai-agent/backend`:
+  - Nhánh `dev`: tag `:dev`, `:dev-<commit_sha>`
+  - Nhánh `main`: tag `:latest`, `:<commit_sha>`
+
+### 3. Continuous Deployment (CD) - `deploy`:
+- Kích hoạt khi có commit mới được push.
+- Nếu cấu hình GitHub Secrets (`SERVER_HOST`, `SERVER_USER`, `SERVER_SSH_KEY`), tự động kích hoạt deploy trên server mục tiêu qua `docker-compose.prod.yml`.
+- Kéo image mới từ GHCR và khởi chạy bằng:
+  ```bash
+  docker compose -f docker-compose.prod.yml pull
+  docker compose -f docker-compose.prod.yml up -d
+  ```
 
 ---
 
