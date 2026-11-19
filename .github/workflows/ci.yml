@@ -1,4 +1,4 @@
-name: Backend CI/CD Pipeline
+name: Backend CI Pipeline
 
 on:
   push:
@@ -12,7 +12,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   lint-and-test:
@@ -71,7 +70,7 @@ jobs:
           PGPASSWORD=postgreSQL123 psql -h localhost -U app -d procurement -f db/schema.sql
           PGPASSWORD=postgreSQL123 psql -h localhost -U app -d procurement -f db/permissions.sql
 
-      - name: Load Initial Dataset & Seed Test Users
+      - name: Load Initial Dataset & Seed Test Data
         run: |
           python db/load_to_postgres.py --dsn "postgresql://app:postgreSQL123@localhost:5432/procurement" --clean-dir ./output --proc-dir ./procurement_data
           python db/seed_test_users.py
@@ -80,64 +79,58 @@ jobs:
         run: |
           pytest backend/tests ml/tests -v --timeout=120
 
-  build-and-push:
-    name: Build & Publish Docker Image (CD)
-    runs-on: ubuntu-latest
-    needs: lint-and-test
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: actions/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
-        if: github.event_name == 'push'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}/backend
-          tags: |
-            type=ref,event=branch
-            type=sha,format=short
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Build and Push Docker Image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: backend/Dockerfile
-          push: ${{ github.event_name == 'push' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-  deploy:
-    name: Deploy to Server (CD)
-    runs-on: ubuntu-latest
-    needs: build-and-push
-    if: github.event_name == 'push'
-
-    steps:
-      - name: Deploy trigger check
-        env:
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
-          SERVER_USER: ${{ secrets.SERVER_USER }}
-          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
-        run: |
-          if [ -n "$SERVER_HOST" ] && [ -n "$SERVER_USER" ] && [ -n "$SERVER_SSH_KEY" ]; then
-            echo "Deploying to $SERVER_HOST..."
-            # Placeholder SSH deployment:
-            # ssh -i key $SERVER_USER@$SERVER_HOST "cd /app && docker compose pull && docker compose up -d"
-          else
-            echo "Khong tim thay secrets SSH (SERVER_HOST, SERVER_USER, SERVER_SSH_KEY)."
-            echo "Docker image da duoc build va push thanh cong len GHCR: ghcr.io/${{ github.repository }}/backend:${{ github.ref_name }}"
-            echo "San sang de deploy tren Server/VPS hoac Cloud bang cach pull image tu GHCR."
-          fi
+# ==============================================================================
+# CD Pipeline (Tạm ẩn - Bỏ comment khi sẵn sàng đóng gói và triển khai tự động)
+# ==============================================================================
+#   build-and-push:
+#     name: Build & Publish Docker Image (CD)
+#     runs-on: ubuntu-latest
+#     needs: lint-and-test
+#     permissions:
+#       contents: read
+#       packages: write
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+#       - name: Set up Docker Buildx
+#         uses: actions/setup-buildx-action@v3
+#       - name: Log in to GitHub Container Registry
+#         if: github.event_name == 'push'
+#         uses: docker/login-action@v3
+#         with:
+#           registry: ghcr.io
+#           username: ${{ github.actor }}
+#           password: ${{ secrets.GITHUB_TOKEN }}
+#       - name: Extract Docker metadata
+#         id: meta
+#         uses: docker/metadata-action@v5
+#         with:
+#           images: ghcr.io/${{ github.repository }}/backend
+#           tags: |
+#             type=ref,event=branch
+#             type=sha,format=short
+#             type=raw,value=latest,enable={{is_default_branch}}
+#       - name: Build and Push Docker Image
+#         uses: docker/build-push-action@v5
+#         with:
+#           context: .
+#           file: backend/Dockerfile
+#           push: ${{ github.event_name == 'push' }}
+#           tags: ${{ steps.meta.outputs.tags }}
+#           labels: ${{ steps.meta.outputs.labels }}
+#
+#   deploy:
+#     name: Deploy to Server (CD)
+#     runs-on: ubuntu-latest
+#     needs: build-and-push
+#     if: github.event_name == 'push'
+#     steps:
+#       - name: Deploy trigger check
+#         env:
+#           SERVER_HOST: ${{ secrets.SERVER_HOST }}
+#           SERVER_USER: ${{ secrets.SERVER_USER }}
+#           SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+#         run: |
+#           if [ -n "$SERVER_HOST" ] && [ -n "$SERVER_USER" ] && [ -n "$SERVER_SSH_KEY" ]; then
+#             echo "Deploying to $SERVER_HOST..."
+#           fi

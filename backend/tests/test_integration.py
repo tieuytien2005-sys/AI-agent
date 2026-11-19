@@ -97,6 +97,20 @@ def test_import_same_date_no_retrain(admin_token: str):
     assert count_after == count_before
 
 
+def _ollama_available() -> bool:
+    try:
+        from backend.core.config import OLLAMA_BASE_URL
+        import httpx
+        r = httpx.get(f"{OLLAMA_BASE_URL.rstrip('/')}/models", timeout=2.0)
+        return r.status_code == 200
+    except Exception:
+        return False
+
+
+@pytest.mark.skipif(
+    not _ollama_available(),
+    reason="Yêu cầu Ollama đang hoạt động để chạy test luồng Agent AI đầy đủ."
+)
 def test_full_procurement_flow(admin_token: str, manager_token: str):
     # 1. POST /api/import/inventory (cập nhật on_hand thấp)
     inv_csv = b"item_id,store_id,on_hand,on_order\nFOODS_3_795,CA_1,1,0\n"

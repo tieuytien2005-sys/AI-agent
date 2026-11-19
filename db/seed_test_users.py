@@ -1,5 +1,5 @@
 """
-Script nạp các tài khoản người dùng kiểm thử (ADMIN, MANAGER, PURCHASER, VIEWER) vào PostgreSQL.
+Script nạp các tài khoản người dùng kiểm thử (ADMIN, MANAGER, PURCHASER, VIEWER) và dữ liệu mẫu vào PostgreSQL.
 Dùng trong môi trường Local Dev và GitHub Actions CI/CD.
 """
 import os
@@ -18,10 +18,10 @@ def seed_users(dsn: str):
         ("manager@poc.local", "Manager User", get_bcrypt_hash("manager123"), "MANAGER", True),
         ("purchaser@poc.local", "Purchaser User", get_bcrypt_hash("purchaser123"), "PURCHASER", True),
         ("viewer@poc.local", "Viewer User", get_bcrypt_hash("viewer123"), "VIEWER", True),
-        ("system@poc.local", "System Disabled", "!disabled", "ADMIN", False),
+        ("system@poc.local", "System Disabled", get_bcrypt_hash("system123"), "ADMIN", False),
     ]
 
-    print(f"Connecting to database to seed test users...")
+    print("Connecting to database to seed test users...")
     with psycopg.connect(dsn) as conn:
         with conn.cursor() as cur:
             for email, name, pw_hash, role, active in users:
@@ -37,6 +37,20 @@ def seed_users(dsn: str):
                     """,
                     (email, name, pw_hash, role, active),
                 )
+
+            # Khởi tạo bản ghi forecast_runs mẫu để phục vụ API test
+            cur.execute("SELECT COUNT(*) FROM forecast_runs;")
+            if cur.fetchone()[0] == 0:
+                cur.execute(
+                    """
+                    INSERT INTO forecast_runs (model_name, model_version, trained_until, horizon_days, metrics, params)
+                    VALUES ('lgbm_quantile', 'full_v1.0', '2016-05-22', 28,
+                            '{"wape_overall": 0.15, "rmsse_overall": 0.25}'::jsonb,
+                            '{"horizon": 28}'::jsonb);
+                    """
+                )
+                print("Seed sample forecast_runs created.")
+
         conn.commit()
     print("Seed users created/updated successfully.")
 

@@ -112,7 +112,7 @@ def create_features(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy().sort_values(["store_id", "item_id", "date"]).reset_index(drop=True)
 
     # 1. Calendar Features
-    df["dayofweek"] = df["date"].dt.dayofweek # 0=Monday, 6=Sunday
+    df["dayofweek"] = df["date"].dt.day_of_week # 0=Monday, 6=Sunday
     df["is_weekend"] = df["dayofweek"].isin([5, 6]).astype(int)
     df["month"] = df["date"].dt.month
     df["day"] = df["date"].dt.day
