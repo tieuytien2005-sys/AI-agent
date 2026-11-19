@@ -150,3 +150,44 @@ Thoát khỏi psql:
   ```bash
   docker compose down -v
   ```
+
+---
+
+## 6. Chạy Backend bằng Docker
+
+### Khởi chạy Backend và Database cùng lúc:
+```bash
+docker compose up -d --build
+```
+Dịch vụ backend sẽ chạy tại: `http://localhost:8000`
+- API Documentation (Swagger UI): `http://localhost:8000/docs`
+- Healthcheck endpoint: `http://localhost:8000/`
+
+### Xem log của Backend:
+```bash
+docker compose logs -f backend
+```
+
+---
+
+## 7. CI/CD Pipeline (GitHub Actions)
+
+Tệp workflow nằm tại `.github/workflows/ci.yml`. Pipeline tự động kích hoạt khi có `push` hoặc `pull_request` vào nhánh `main` hoặc `dev`:
+1. **Lint, Database Setup & Pytest**:
+   - Khởi tạo container PostgreSQL 16.
+   - Nạp schema (`db/schema.sql`) và quyền (`db/permissions.sql`).
+   - Nạp dataset PoC và seed các user test (`db/seed_test_users.py`).
+   - Kiểm tra cú pháp toàn bộ file Python và thực thi bộ test Pytest (`backend/tests`).
+2. **Build Docker Image**:
+   - Kiểm tra build Docker image cho backend bằng Buildx để đảm bảo image luôn sẵn sàng triển khai.
+
+---
+
+## Quy tắc SQL (bắt buộc tuân thủ)
+
+- Dùng `%(param)s` cho mọi parameterized query với psycopg 3
+- Ký tự `%` trong chuỗi LIKE phải viết `%%`
+  - Đúng:  `WHERE col LIKE '%%abc%%'`
+  - Sai:   `WHERE col LIKE '%abc%'`
+- Không dùng `:param` (SQLAlchemy style)
+- Không dùng f-string hay .format() để ghép SQL

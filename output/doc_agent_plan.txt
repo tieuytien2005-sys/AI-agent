@@ -1,0 +1,48 @@
+Kiến trúc Agent và nguyên tắc an toàn
+Các tool của Agent:
+get_inventory_status(sku): đọc tồn kho, tồn an toàn, tồn đang về
+forecast_demand(sku, horizon): gọi mô hình dự báo
+detect_risk(sku): phát hiện nguy cơ thiếu hoặc dư hàng
+get_supplier_quotes(sku): tổng hợp báo giá
+evaluate_supplier(supplier_id): chấm điểm theo giá, lead time, độ tin cậy, chất lượng
+create_purchase_request_draft(...): tạo phiếu nháp ở trạng thái PENDING_APPROVAL
+log_decision(...): ghi lý do và lịch sử vào nhật ký
+Quy tắc bắt buộc:
+Không có tool đặt hàng.
+ Agent chỉ được tạo nháp, không được gửi đơn cho nhà cung cấp. Đây là ràng buộc ở tầng hệ thống, không chỉ dựa vào prompt.
+Mỗi đề xuất phải kèm lý do, dữ liệu đầu vào và mức độ tin cậy.
+Mọi quyết định của người quản lý (duyệt, từ chối, sửa) đều được ghi lại, kèm lý do.
+5. Kế hoạch 10 tuần
+Tuần
+Mục tiêu
+Đầu ra
+1
+Khảo sát, xác định phạm vi PoC, chọn 20–50 SKU mẫu, chốt kiến trúc
+Đề cương kỹ thuật, sơ đồ kiến trúc
+2
+Thu thập và làm sạch dữ liệu, thiết kế schema CSDL
+Bộ dữ liệu sạch, ERD
+3
+Xây baseline dự báo (moving average, ETS) và đo độ chính xác
+Bảng so sánh MAE, MAPE
+4
+Nâng cấp mô hình (LightGBM hoặc Prophet), thêm logic cảnh báo thiếu/dư
+Module dự báo và phát hiện rủi ro, có unit test
+5
+Mô phỏng và chấm điểm nhà cung cấp, tổng hợp báo giá
+Module báo giá và đánh giá NCC
+6
+Xây các tool của Agent, kết nối LLM với tool calling
+Agent chạy được với một SKU
+7
+Hoàn thiện luồng: cảnh báo → đề xuất → phiếu nháp → log
+Luồng end-to-end
+8
+Xây giao diện: bảng cảnh báo, màn hình phê duyệt, lịch sử quyết định
+UI hoạt động
+9
+Kiểm thử: đánh giá Agent trên các kịch bản, kiểm tra ràng buộc không tự đặt hàng
+Bảng kết quả kiểm thử
+10
+Hoàn thiện báo cáo, demo, chuẩn bị bảo vệ
+Báo cáo, slide, video demo, mã nguồn

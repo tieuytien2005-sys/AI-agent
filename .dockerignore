@@ -1,0 +1,28 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Git & repo metadata
+.git/
+.gitignore
+.agents/
+
+# Environment files
+.env
+.env*.local
+
+# Project data and docs (exclude from container to keep image lean)
+pgdata/
+procurement_data/
+output/
+docs/
+notebook/
+*.md

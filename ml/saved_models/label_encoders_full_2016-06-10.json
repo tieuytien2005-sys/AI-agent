@@ -1,0 +1,38 @@
+{
+  "sku_code": {
+    "FOODS_2_074": 0,
+    "FOODS_2_082": 1,
+    "FOODS_2_130": 2,
+    "FOODS_2_285": 3,
+    "FOODS_2_347": 4,
+    "FOODS_3_138": 5,
+    "FOODS_3_363": 6,
+    "FOODS_3_450": 7,
+    "FOODS_3_625": 8,
+    "FOODS_3_654": 9,
+    "FOODS_3_706": 10,
+    "FOODS_3_795": 11,
+    "HOBBIES_1_014": 12,
+    "HOBBIES_1_030": 13,
+    "HOBBIES_1_134": 14,
+    "HOBBIES_1_147": 15,
+    "HOBBIES_1_154": 16,
+    "HOBBIES_1_155": 17,
+    "HOBBIES_1_201": 18,
+    "HOBBIES_1_329": 19,
+    "HOBBIES_1_387": 20,
+    "HOUSEHOLD_1_153": 21,
+    "HOUSEHOLD_1_277": 22,
+    "HOUSEHOLD_1_282": 23,
+    "HOUSEHOLD_1_379": 24,
+    "HOUSEHOLD_1_409": 25,
+    "HOUSEHOLD_1_448": 26,
+    "HOUSEHOLD_1_459": 27,
+    "HOUSEHOLD_1_473": 28,
+    "HOUSEHOLD_2_225": 29
+  },
+  "store_code": {
+    "CA_1": 0,
+    "TX_1": 1
+  }
+}

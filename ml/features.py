@@ -23,6 +23,37 @@ NUMERICAL_FEATURES = [
 ALL_FEATURES = NUMERICAL_FEATURES + CATEGORICAL_FEATURES
 TARGET_COL = "sales"
 
+DB_FEATURE_COLS = [
+    "lag_7",
+    "lag_14",
+    "lag_28",
+    "rolling_mean_7",
+    "rolling_mean_28",
+    "rolling_std_7",
+    "dayofweek",
+    "month",
+    "is_weekend",
+    "is_month_start",
+    "is_month_end",
+    "quarter",
+    "snap",
+    "is_event",
+    "sell_price",
+    "sku_encoded",
+    "store_encoded",
+]
+
+NON_FEATURE_COLS = [
+    "sale_date",
+    "qty_sold",
+    "product_id",
+    "location_id",
+    "sku_code",
+    "store_code",
+    "cat_id",
+    "category",
+]
+
 
 def load_raw_data(source: str = "csv", csv_path: str = "output/sales_clean_long.csv", dsn: str = None) -> pd.DataFrame:
     """
@@ -152,3 +183,81 @@ def get_splits(df_feat: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.Da
     val = df_feat[df_feat["split"] == "val"].copy()
     test = df_feat[df_feat["split"] == "test"].copy()
     return train, val, test
+
+
+def build_features(
+    df: pd.DataFrame,
+    mode: str = "train",
+    label_encoders: dict = None,
+) -> tuple[pd.DataFrame, dict]:
+    """
+    Tạo đặc trưng cho LightGBM (độc lập với M5, dùng được với dữ liệu DB bất kỳ).
+
+    mode='train':
+      - Tạo label_encoders cho sku_code và store_code
+      - Trả về (df_features, label_encoders)
+
+    mode='predict':
+      - Dùng label_encoders đã có (truyền vào)
+      - SKU/store chưa thấy khi train → encode thành -1
+      - Trả về (df_features, label_encoders)
+    """
+    from ml.data_loader import get_calendar_features
+
+    out = df.copy()
+    out["sale_date"] = pd.to_datetime(out["sale_date"])
+    out = out.sort_values(["store_code", "sku_code", "sale_date"]).reset_index(drop=True)
+
+    grouped = out.groupby(["store_code", "sku_code"])
+    out["lag_7"] = grouped["qty_sold"].shift(7)
+    out["lag_14"] = grouped["qty_sold"].shift(14)
+    out["lag_28"] = grouped["qty_sold"].shift(28)
+
+    qty_shifted = grouped["qty_sold"].shift(1)
+    out["rolling_mean_7"] = qty_shifted.groupby([out["store_code"], out["sku_code"]]).transform(
+        lambda x: x.rolling(7, min_periods=1).mean()
+    )
+    out["rolling_mean_28"] = qty_shifted.groupby([out["store_code"], out["sku_code"]]).transform(
+        lambda x: x.rolling(28, min_periods=1).mean()
+    )
+    out["rolling_std_7"] = qty_shifted.groupby([out["store_code"], out["sku_code"]]).transform(
+        lambda x: x.rolling(7, min_periods=1).std().fillna(0.0)
+    )
+
+    cal = get_calendar_features(out["sale_date"])
+    for col in ("dayofweek", "month", "is_weekend", "is_month_start", "is_month_end", "quarter"):
+        out[col] = cal[col].values
+
+    if "snap" in out.columns:
+        out["snap"] = out["snap"].fillna(0).astype(int)
+    else:
+        out["snap"] = 0
+
+    if "is_event" in out.columns:
+        out["is_event"] = out["is_event"].fillna(0).astype(int)
+    else:
+        out["is_event"] = 0
+
+    if "sell_price" in out.columns:
+        out["sell_price"] = pd.to_numeric(out["sell_price"], errors="coerce")
+        out["sell_price"] = out.groupby(["store_code", "sku_code"])["sell_price"].transform(
+            lambda x: x.ffill().bfill()
+        )
+        out["sell_price"] = out["sell_price"].fillna(1.0).astype(float)
+    else:
+        out["sell_price"] = 1.0
+
+    if mode == "train" or label_encoders is None:
+        sku_list = sorted(out["sku_code"].astype(str).unique())
+        store_list = sorted(out["store_code"].astype(str).unique())
+        label_encoders = {
+            "sku_code": {val: idx for idx, val in enumerate(sku_list)},
+            "store_code": {val: idx for idx, val in enumerate(store_list)},
+        }
+
+    sku_map = label_encoders.get("sku_code", {})
+    store_map = label_encoders.get("store_code", {})
+    out["sku_encoded"] = out["sku_code"].astype(str).map(lambda x: sku_map.get(x, -1)).astype(int)
+    out["store_encoded"] = out["store_code"].astype(str).map(lambda x: store_map.get(x, -1)).astype(int)
+
+    return out, label_encoders
